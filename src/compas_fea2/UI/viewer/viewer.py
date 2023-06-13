@@ -56,12 +56,12 @@ class FEA2Viewer():
         self.height = height
         self.app = App(width=width, height=height)
 
-        self.app.view.camera.target = [3000, 3000, 100]
-        self.app.view.camera.position = [7000, 7000, 5000]
-        self.app.view.camera.near = 1
-        self.app.view.camera.far = 100000
-        self.app.view.camera.scale = 1000
-        self.app.view.grid.cell_size = 1000
+        self.app.view.camera.target = kwargs.get('target', None) or [3000, 3000, 100]
+        self.app.view.camera.position = kwargs.get('position', None) or [7000, 7000, 5000]
+        self.app.view.camera.near = kwargs.get('near', None) or 1
+        self.app.view.camera.far = kwargs.get('far', None) or 100000
+        self.app.view.camera.scale = kwargs.get('scale', None) or 1000
+        self.app.view.grid.cell_size = kwargs.get('cell_size', None) or 1000
 
     def _scale_mesh(self, mesh):
         S = Scale.from_factors([self.scale_factor]*3)

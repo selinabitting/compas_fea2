@@ -708,6 +708,127 @@ GROUP BY {};""".format(', '.join(labels),
         node = self.model.find_node_by_location(point, distance, plane=None)
         return self.get_displacement_at_nodes(nodes=[node], steps=steps, group_by=group_by)
 
+    # =========================================================================
+    #                         Results methods - stresses
+    # =========================================================================
+
+    def get_displacements_sql(self, step=None):
+        """Retrieve all nodal dispacements from the SQLite database.
+        Parameters
+        ----------
+        step : :class:`compas_fea2.problem._Step`, optional
+            The step of the analysis to get the results from, by default ``None``.
+            If not provided, the last step of the problem is used.
+
+        Returns
+        -------
+        dict, class:`compas.geoemtry.Vector`
+            Dictionary with {'part':..; 'node':..; 'vector':...} and resultant vector
+        """
+        if not step:
+            step = self._steps_order[-1]
+        _, col_val = self._get_field_results('U', step)
+        return self._get_vector_results(col_val)
+
+    def get_max_displacement_sql(self, component='U3', steps=None, group_by='step'):
+        """_summary_
+
+        Parameters
+        ----------
+        component : str, optional
+            _description_, by default 'U3'
+        steps : _type_, optional
+            _description_, by default None
+        group_by : str, optional
+            _description_, by default 'step'
+
+        Returns
+        -------
+        _type_
+            _description_
+        """
+        return self._get_func_field_sql(func='MAX', field='U', steps=steps, group_by=group_by, component=component)[0]
+
+    def get_min_displacement_sql(self, component='U3', steps=None, group_by='step'):
+        """_summary_
+
+        Parameters
+        ----------
+        component : str, optional
+            _description_, by default 'U3'
+        steps : _type_, optional
+            _description_, by default None
+        group_by : str, optional
+            _description_, by default 'step'
+
+        Returns
+        -------
+        _type_
+            _description_
+        """
+        return self._get_func_field_sql(func='MIN', field='U', steps=steps, group_by=group_by, component=component)[0]
+
+    def get_displacement_at_nodes_sql(self, nodes, steps=None, group_by=['step', 'part']):
+        """Get the displacement of a list of :class:`compas_fea2.model.Node`.
+
+        Parameters
+        ----------
+        node : :class:`compas_fea2.model.Node` | [:class:`compas_fea2.model.Node`]
+            The node or the nodes where to retrieve the displacmeent
+        steps : _type_, optional
+            _description_, by default None
+
+        Return
+        ------
+        dict
+            Dictionary with {'part':..; 'node':..; 'vector':...}
+        """
+        if not isinstance(nodes, Iterable):
+            nodes = [nodes]
+        if not steps:
+            steps = [self._steps_order[-1]]
+        field = 'U'
+        group_by = 'step'
+        engine, connection, metadata = self.db_connection or self.connect_db()
+        components = get_field_labels(engine, connection, metadata, field, 'components')
+        invariants = get_field_labels(engine, connection, metadata, field, 'invariants')
+        labels = ['part', 'position', 'key']+components+invariants
+
+        sql = """SELECT {}
+FROM {}
+WHERE step IN ({}) AND key  in ({})
+GROUP BY {};""".format(', '.join(labels),
+                       field,
+                       ', '.join(["'{}'".format(step.name) for step in steps]),
+                       ', '.join(["'{}'".format(node.key) for node in nodes]),
+                       group_by)
+        ResultProxy = connection.execute(sql)
+        ResultSet = ResultProxy.fetchall()
+        disp, _ = self._get_vector_results((labels,ResultSet))
+        return disp
+
+    def get_displacement_at_point(self, point, distance, plane=None, steps=None, group_by=['step', 'part']):
+        """Get the displacement of the model around a location (point).
+
+        Parameters
+        ----------
+        point : [float]
+            The coordinates of the point.
+        steps : _type_, optional
+            _description_, by default None
+
+        Return
+        ------
+        dict
+            Dictionary with {'part':..; 'node':..; 'vector':...}
+        """
+        if not steps:
+            steps = [self._steps_order[-1]]
+        node = self.model.find_node_by_location(point, distance, plane=None)
+        return self.get_displacement_at_nodes(nodes=[node], steps=steps, group_by=group_by)
+
+
+
 
     # =========================================================================
     #                         Viewer methods

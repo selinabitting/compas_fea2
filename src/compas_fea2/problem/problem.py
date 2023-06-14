@@ -498,15 +498,20 @@ Analysis folder path : {}
             test = [TABLE.columns.step == step.name, TABLE.columns.S11 != 0.]
         return get_field_results(engine, connection, metadata, TABLE, test, field)
 
-    def _get_func_field_sql(self, func, field, steps=None, group_by=None, component='magnitude'):
+    def _get_func_field_sql(self, func, field,component, steps=None, group_by=None):
         """
         """
         if not steps:
             steps = [self._steps_order[-1]]
         engine, connection, metadata = self.db_connection or self.connect_db()
-        components = get_field_labels(engine, connection, metadata, field, 'components')
-        invariants = get_field_labels(engine, connection, metadata, field, 'invariants')
-        labels = ['part', 'position', 'key']+components+invariants
+        if 'U' in field:
+            components = get_field_labels(engine, connection, metadata, field, 'components')
+            invariants = get_field_labels(engine, connection, metadata, field, 'invariants')
+            labels = ['part', 'position', 'key']+components+invariants
+        if 'S' in field:
+            components = get_field_labels(engine, connection, metadata, field, 'components')
+            labels = ['part', 'position', 'key']+components
+        
         labels[labels.index(component)] = '{}({})'.format(func, component)
         sql = """SELECT {}
 FROM {}
@@ -733,7 +738,7 @@ GROUP BY {};""".format(', '.join(labels),
         _, col_val = self._get_field_results('S', step)
         return self._get_vector_results(col_val)
 
-    def get_max_stress_sql(self, component='U3', steps=None, group_by='step'):
+    def get_max_stress_sql(self, component, steps=None, group_by='step'):
         """_summary_
 
         Parameters
@@ -750,7 +755,8 @@ GROUP BY {};""".format(', '.join(labels),
         _type_
             _description_
         """
-        return self._get_func_field_sql(func='MAX', field='U', steps=steps, group_by=group_by, component=component)[0]
+        print(component,'COmponent')
+        return self._get_func_field_sql(func='MAX', field='S', steps=steps, group_by=group_by, component=component)[0]
 
     def get_min_stress_sql(self, component='U3', steps=None, group_by='step'):
         """_summary_

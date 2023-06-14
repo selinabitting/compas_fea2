@@ -101,21 +101,13 @@ def get_all_field_results(engine, connection, metadata, table):
     ResultSet = ResultProxy.fetchall()
     return ResultProxy, ResultSet
 
-def get_field_results(engine, connection, metadata, table, test):
+def get_field_results(engine, connection, metadata, table, test, field):
     components = get_field_labels(engine, connection, metadata, str(table), 'components')
     invariants = get_field_labels(engine, connection, metadata, str(table), 'invariants')
-    labels = ['part', 'position', 'key']+components+invariants
-    ResultProxy, ResultSet = get_query_results(connection,
-                                               table,
-                                               labels,
-                                               test)
-
-    return ResultProxy, (labels, ResultSet)
-
-def get_field_results_stress(engine, connection, metadata, table, test):
-    components = get_field_labels(engine, connection, metadata, str(table), 'components')
-    labels = ['part', 'position', 'key']+components
-    print('LABELSSS',labels)
+    if 'U' in field:
+        labels = ['part', 'position', 'key']+components+invariants
+    if 'S' in field:
+        labels = ['part', 'position', 'key']+components
     ResultProxy, ResultSet = get_query_results(connection,
                                                table,
                                                labels,

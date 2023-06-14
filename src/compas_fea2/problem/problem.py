@@ -21,7 +21,6 @@ from compas_fea2.results.sql_wrapper import (create_connection,
                                              get_database_table,
                                              get_query_results,
                                              get_field_results,
-                                             get_field_results_stress,
                                              get_field_labels)
 
 from compas.geometry import Point, Plane
@@ -493,28 +492,11 @@ Analysis folder path : {}
         """
         engine, connection, metadata = self.db_connection or self.connect_db(db_path)
         TABLE = get_database_table(engine, metadata, field)
-        test = [TABLE.columns.step == step.name, TABLE.columns.magnitude != 0.]
-        return get_field_results(engine, connection, metadata, TABLE, test)
-    
-    def _get_field_results_stress(self, field, step, db_path=None):
-        """_summary_
-
-        Parameters
-        ----------
-        field : _type_
-            _description_
-        step : _type_
-            _description_
-
-        Returns
-        -------
-        _type_
-            _description_
-        """
-        engine, connection, metadata = self.db_connection or self.connect_db(db_path)
-        TABLE = get_database_table(engine, metadata, field)
-        test = [TABLE.columns.step == step.name, TABLE.columns.S11 != 0.]
-        return get_field_results_stress(engine, connection, metadata, TABLE, test)
+        if 'U' in field:
+            test = [TABLE.columns.step == step.name, TABLE.columns.magnitude != 0.]
+        if 'S' in field:
+            test = [TABLE.columns.step == step.name, TABLE.columns.S11 != 0.]
+        return get_field_results(engine, connection, metadata, TABLE, test, field)
 
     def _get_func_field_sql(self, func, field, steps=None, group_by=None, component='magnitude'):
         """
@@ -748,7 +730,7 @@ GROUP BY {};""".format(', '.join(labels),
         """
         if not step:
             step = self._steps_order[-1]
-        _, col_val = self._get_field_results_stress('S', step)
+        _, col_val = self._get_field_results('S', step)
         return self._get_vector_results(col_val)
 
     def get_max_stress_sql(self, component='U3', steps=None, group_by='step'):

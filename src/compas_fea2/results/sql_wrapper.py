@@ -112,6 +112,17 @@ def get_field_results(engine, connection, metadata, table, test):
 
     return ResultProxy, (labels, ResultSet)
 
+def get_field_results_stress(engine, connection, metadata, table, test):
+    components = get_field_labels(engine, connection, metadata, str(table), 'components')
+    labels = ['part', 'position', 'key']+components
+    print('LABELSSS',labels)
+    ResultProxy, ResultSet = get_query_results(connection,
+                                               table,
+                                               labels,
+                                               test)
+
+    return ResultProxy, (labels, ResultSet)
+
 
 if __name__ == '__main__':
     import os

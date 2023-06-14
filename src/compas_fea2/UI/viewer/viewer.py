@@ -56,17 +56,18 @@ class FEA2Viewer():
         self.height = height
         self.app = App(width=width, height=height)
 
-        # self.app.view.camera.target = kwargs.get('target', None) or [3000, 3000, 100]
-        # self.app.view.camera.position = kwargs.get('position', None) or [7000, 7000, 5000]
-        # self.app.view.camera.near = kwargs.get('near', None) or 1
-        # self.app.view.camera.far = kwargs.get('far', None) or 100000
-        # self.app.view.camera.scale = kwargs.get('scale', None) or 1000
-        # self.app.view.grid.cell_size = kwargs.get('cell_size', None) or 1000
         
-        self.rx = -60
-        self.rz = 0
-        self.ty = -2
-        self.distance = 10
+        self.app.view.camera.target = kwargs.get('target', None) or [3000, 3000, 100]
+        self.app.view.camera.position = kwargs.get('position', None) or [7000, 7000, 5000]
+        self.app.view.camera.near = kwargs.get('near', None) or 1
+        self.app.view.camera.far = kwargs.get('far', None) or 100000
+        self.app.view.camera.scale = kwargs.get('scale', None) or 1000
+        self.app.view.grid.cell_size = kwargs.get('cell_size', None) or 1000
+        
+        # self.rx = kwargs.get('rx', None) or -60
+        # self.rz = kwargs.get('rz', None) or 0
+        # self.ty = kwargs.get('ty', None) or -2
+        # self.distance = kwargs.get('distance', None) or 10
 
     def _scale_mesh(self, mesh):
         S = Scale.from_factors([self.scale_factor]*3)
@@ -104,6 +105,7 @@ class FEA2Viewer():
             self.draw_beam_elements(filter(lambda x: isinstance(x, BeamElement), part.elements), draw_nodes)
             if draw_nodes:
                 self.draw_nodes(part.nodes, node_labels)
+            
 
     def draw_nodes(self, nodes, node_lables):
         """Draw nodes.
@@ -163,7 +165,9 @@ class FEA2Viewer():
                 raise NotImplementedError("only 3 and 4 vertices shells supported at the moment")
         if collection_items:
             self.app.add(Collection(collection_items), facecolor=(.9, .9, .9))
+        
 
+        
     def draw_beam_elements(self, elements, show_vertices=True):
         """Draw the elements of a part.
 

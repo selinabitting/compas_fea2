@@ -831,13 +831,13 @@ GROUP BY {};""".format(', '.join(labels),
         v.show()
 
 
-    def show_deformed(self, step=None, width=1600, height=900, scale_factor=1.):
+    def show_deformed(self, step=None, width=1600, height=900, scale_factor=1., **kwargs):
         from compas_fea2.UI.viewer import FEA2Viewer
         from compas.geometry import Point, Vector
 
         from compas.colors import ColorMap, Color
         cmap = ColorMap.from_mpl('viridis')
-        v = FEA2Viewer(width, height)
+        v = FEA2Viewer(width, height, **kwargs)
 
 
         # TODO create a copy of the model first
@@ -847,4 +847,5 @@ GROUP BY {};""".format(', '.join(labels),
             vector.scale(scale_factor)
             displacement['node'].xyz = sum_vectors([Vector(*displacement['node'].xyz), vector])
         v.draw_parts(self.model.parts, solid=True)
+        # v.app.view.camera.zoom_extents([list(v.app.view.objects.values())[0]])
         v.show()
